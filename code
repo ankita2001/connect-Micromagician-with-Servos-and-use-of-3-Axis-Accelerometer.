@@ -1,0 +1,112 @@
+      // code for detecting impacts with 3-axis accelerometer and contol two dc motors
+
+#include<microM.h>
+#include<Servo.h>
+
+Servo servo1;
+const int pin1 = 2;
+Servo servo2;
+const int pin2 = 3;
+Servo servo3;
+const int pin3 = 9;
+Servo servo4;
+const int pin4 = 10;
+Servo servo5;
+const int pin5 = 11;
+Servo servo6;
+const int pin6 = 12;
+Servo servo7;
+const int pin7 = 13;
+
+static int Dir1=2, Dir2=-2;                            // set rate of acceleration
+static int Speed1, Speed2;                             // motor control variables
+static byte Brake1, Brake2;
+
+void setup() {
+  // put your setup code here, to run once:
+
+  microM.Setup();                        // this must be called first in your setup function
+  microM.sensitivity=50;                 // if your robot vibrates or moves over a rough surface then increase this value to prevent false triggering
+  microM.devibrate=100;                   // depends on the construction of your robot. Increase the value if you get additional readings after initial impact
+  
+  Serial.begin(9600);                    // initialize serial monitor
+
+  //servo setup
+  servo1.attach(pin1);
+  servo2.attach(pin2);
+  servo3.attach(pin3);
+  servo4.attach(pin4);
+  servo5.attach(pin5);
+  servo6.attach(pin6);
+  servo7.attach(pin7);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:   
+
+  microM.Impact();                       // function must be called at least once every 2mS to work accurately
+  if(microM.magnitude>0)                 // display results of impact
+  {
+    Serial.println(""); 
+    Serial.print("\tMagnitude:");
+    Serial.print(microM.magnitude);
+    Serial.print("\tDelta X:");
+    Serial.print(microM.deltx);
+    Serial.print("\tDelta Y:");
+    Serial.print(microM.delty);
+    Serial.print("\tDelta Z:");
+    Serial.println(microM.deltz);
+    Serial.print("\tX axis:");
+    Serial.print(microM.xaxis);
+    Serial.print("\tY axis:");
+    Serial.print(microM.yaxis);
+    Serial.print("\tZ axis:");
+    Serial.print(microM.zaxis);
+    Serial.println(""); 
+    microM.magnitude=0;                  // prevents display repeating the same values
+  }
+
+  // steps to control two dc motors
+  Speed1+=Dir1;                                          // accelerate/deccelerate motor
+  if(Speed1<(-192) || Speed1>192) 
+  {
+    Dir1 = - Dir1;                                          // if peak speed reached then reverse direction
+    Brake1 = 1;                                               // if peak speed reached then brake motor
+  }
+  if(Speed1==0) 
+    Brake1=0;                                // release brake when motor speed = 0
+  
+  Speed2+=Dir2;                                        // accelerate/deccelerate motor
+  if(Speed2<(-192) || Speed2>192)                        
+  {
+    Dir2=-Dir2;                                        // if peak speed reached then reverse direction
+    Brake2=1;                                              // if peak speed reached then brake motor
+  }
+  if(Speed2==0) 
+    Brake2=0;                              // release brake when motor speed = 0
+  
+  delay(10);                                                
+  microM.Motors(Speed1,Speed2,Brake1,Brake2);    // update motor controller
+
+  //servo controller
+  int angle;
+
+  for (angle = 0; angle <= 180; angle += 1) { // goes from 0 degrees to 180 degrees
+    // in steps of 1 degree
+    servo1.write(angle);              // tell servo to go to position in variable 'angle'
+    delay(10);                       // waits 15ms for the servo to reach the position
+    servo2.write(angle);              // tell servo to go to position in variable 'angle'
+    delay(10);                       // waits 15ms for the servo to reach the position
+    servo3.write(angle);              // tell servo to go to position in variable 'angle'
+    delay(10);                       // waits 15ms for the servo to reach the position
+    servo4.write(angle);              // tell servo to go to position in variable 'angle'
+    delay(10);                       // waits 15ms for the servo to reach the position
+    servo5.write(angle);              // tell servo to go to position in variable 'angle'
+    delay(10);                       // waits 15ms for the servo to reach the position
+    servo6.write(angle);              // tell servo to go to position in variable 'angle'
+    delay(10);                       // waits 15ms for the servo to reach the position
+    servo7.write(angle);              // tell servo to go to position in variable 'angle'
+    delay(10);                       // waits 15ms for the servo to reach the position
+  }
+}
+  
